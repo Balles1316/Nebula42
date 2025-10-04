@@ -1,14 +1,28 @@
 /* -------------------------------
-   Mini platformer: HTML5 canvas
-   - Player (rect) moves, jumps
-   - Simple tile map platforms
-   - Coins and a walking enemy
-   - Camera follows player
-   -------------------------------*/
+   Mini platformer con sprites
+   Usa imágenes para:
+   - Personaje
+   - Fondo
+   - Enemigos
+   - Monedas
+-------------------------------- */
 
-const canvas = document.getElementById('game');
+const canvas = document.getElementById("game");
 const ctx = canvas.getContext('2d');
 const W = canvas.width, H = canvas.height;
+
+// Sprites
+const imgBackground = new Image();
+imgBackground.src = "resources/nivel1.jpg";   // Fondo del nivel
+
+const imgPlayer = new Image();
+imgPlayer.src = "resources/astronaut.png";       // Personaje principal
+
+const imgCoin = new Image();
+imgCoin.src = "resources/semilla.png";           // Moneda/orbe de fuego
+
+const imgEnemy = new Image();
+imgEnemy.src = "resources/monstruo_nvl1.png";         // Enemigo
 
 // Game state
 let keys = {};
@@ -16,37 +30,35 @@ let cameraX = 0;
 let score = 0;
 let gameOver = false;
 
-// Level: 0 = empty, 1 = ground tile, 2 = coin, 3 = enemy spawn
+// Level setup
 const level = [];
-const TILE = 40; // tile size
-const LEVEL_W = 200; // number of tiles wide (simple long level)
+const TILE = 40;
+const LEVEL_W = 200;
 const LEVEL_H = Math.floor(H / TILE);
 
 // build simple level (ground + some platforms and coins)
 for (let y = 0; y < LEVEL_H; y++) {
     level[y] = [];
-    for (let x = 0; x < LEVEL_W; x++) {
-        level[y][x] = 0;
-    }
+    for (let x = 0; x < LEVEL_W; x++) level[y][x] = 0;
 }
 // ground
 for (let x = 0; x < LEVEL_W; x++) {
     level[LEVEL_H - 1][x] = 1;
-    if (Math.random() < 0.02) level[LEVEL_H - 2][x] = 1; // occasional double-high
+    if (Math.random() < 0.02) level[LEVEL_H - 2][x] = 1;
 }
-// platforms and coins
+// platforms + coins
 for (let i = 0; i < 60; i++) {
     const px = 5 + Math.floor(Math.random() * (LEVEL_W - 10));
     const py = 4 + Math.floor(Math.random() * (LEVEL_H - 6));
     const len = 2 + Math.floor(Math.random() * 4);
     for (let j = 0; j < len; j++) level[py][px + j] = 1;
-    if (Math.random() < 0.8) level[py - 1][px + Math.floor(Math.random() * len)] = 2; // coin above
+    if (Math.random() < 0.8) level[py - 1][px + Math.floor(Math.random() * len)] = 2;
 }
+
 // enemies
 const enemies = [];
 for (let i = 0; i < 12; i++) {
     const ex = 8 + Math.floor(Math.random() * (LEVEL_W - 20));
-    // find ground tile x,y
     for (let y = 0; y < LEVEL_H - 1; y++) {
         if (level[y + 1][ex] === 1 && level[y][ex] === 0) {
             enemies.push({x: ex * TILE, y: y * TILE, w: 36, h: 36, dir: Math.random() < 0.5 ? -1 : 1, spd: 0.7});
@@ -68,7 +80,7 @@ const player = {
     onGround: false
 };
 
-// handy utilities
+// Utility
 function tileAtPixel(px, py) {
     const tx = Math.floor(px / TILE);
     const ty = Math.floor(py / TILE);
@@ -76,18 +88,16 @@ function tileAtPixel(px, py) {
     return level[ty][tx];
 }
 
-// input
+// Input
 window.addEventListener('keydown', e => {
     keys[e.code] = true;
     if (['ArrowUp', 'Space', 'KeyW'].includes(e.code)) e.preventDefault();
 });
-window.addEventListener('keyup', e => {
-    keys[e.code] = false;
-});
+window.addEventListener('keyup', e => keys[e.code] = false);
 
 function update(dt) {
     if (gameOver) return;
-    // horizontal control
+    // Horizontal
     const left = keys['ArrowLeft'] || keys['KeyA'];
     const right = keys['ArrowRight'] || keys['KeyD'];
     let accel = 0;
@@ -95,41 +105,33 @@ function update(dt) {
     if (right) accel = player.speed;
     player.vx = accel;
 
-    // apply horizontal
     player.x += player.vx;
-    // horizontal collision with tiles
     if (player.vx !== 0) {
         const dir = player.vx > 0 ? 1 : -1;
         const probeX = dir > 0 ? player.x + player.w : player.x;
-        // check top and bottom points
         for (let py of [player.y + 2, player.y + player.h - 2]) {
             if (tileAtPixel(probeX, py) === 1) {
-                // snap to tile edge
                 const tx = Math.floor(probeX / TILE);
-                if (dir > 0) player.x = tx * TILE - player.w - 0.01; else player.x = (tx + 1) * TILE + 0.01;
+                if (dir > 0) player.x = tx * TILE - player.w - 0.01;
+                else player.x = (tx + 1) * TILE + 0.01;
                 player.vx = 0;
             }
         }
     }
 
-    // gravity
-    player.vy += 0.5; // gravity
+    // Gravity + vertical collisions
+    player.vy += 0.5;
     if (player.vy > 12) player.vy = 12;
     player.y += player.vy;
-
-    // vertical collision
     player.onGround = false;
-    // check below and above
     const points = [player.x + 2, player.x + player.w - 2];
     for (let px of points) {
-        // below
         if (tileAtPixel(px, player.y + player.h) === 1) {
             const ty = Math.floor((player.y + player.h) / TILE);
             player.y = ty * TILE - player.h - 0.01;
             player.vy = 0;
             player.onGround = true;
         }
-        // above
         if (tileAtPixel(px, player.y) === 1) {
             const ty = Math.floor(player.y / TILE);
             player.y = (ty + 1) * TILE + 0.01;
@@ -137,13 +139,13 @@ function update(dt) {
         }
     }
 
-    // jump
+    // Jump
     if ((keys['Space'] || keys['ArrowUp'] || keys['KeyW']) && player.onGround) {
         player.vy = -player.jumpPower;
         player.onGround = false;
     }
 
-    // collect coins
+    // Coins
     const cx = Math.floor((player.x + player.w / 2) / TILE);
     const cy = Math.floor((player.y + player.h / 2) / TILE);
     if (level[cy] && level[cy][cx] === 2) {
@@ -151,32 +153,27 @@ function update(dt) {
         score += 10;
     }
 
-    // enemies: simple patrol and collision
+    // Enemies
     for (let e of enemies) {
-        // gravity for enemy
         e.vy = e.vy ? e.vy + 0.5 : 0.5;
         if (e.vy > 12) e.vy = 12;
         e.y += e.vy;
-        // land on ground
         if (tileAtPixel(e.x + e.w / 2, e.y + e.h) === 1) {
             const ty = Math.floor((e.y + e.h) / TILE);
             e.y = ty * TILE - e.h - 0.01;
             e.vy = 0;
         }
-        // move horizontally
         e.x += e.dir * e.spd;
-        // flip when about to walk off a tile or hit wall
         const frontX = e.dir > 0 ? e.x + e.w + 4 : e.x - 4;
         const underFront = tileAtPixel(frontX, e.y + e.h + 6);
         const frontHit = tileAtPixel(frontX, e.y + 8);
         if (underFront !== 1 || frontHit === 1) e.dir *= -1;
     }
 
-    // collisions player <-> enemy
+    // Player <-> Enemy
     for (let i = enemies.length - 1; i >= 0; i--) {
         const e = enemies[i];
         if (rectsOverlap(player, e)) {
-            // if player is falling onto enemy -> stomp
             if (player.vy > 1) {
                 enemies.splice(i, 1);
                 player.vy = -6;
@@ -187,7 +184,7 @@ function update(dt) {
         }
     }
 
-    // camera
+    // Camera
     cameraX = player.x - 200;
     if (cameraX < 0) cameraX = 0;
     if (cameraX > LEVEL_W * TILE - W) cameraX = LEVEL_W * TILE - W;
@@ -198,67 +195,58 @@ function rectsOverlap(a, b) {
 }
 
 function draw() {
-    // background
-    ctx.clearRect(0, 0, W, H);
-    // sky gradient
-    const g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, '#9be7ff');
-    g.addColorStop(1, '#7fd0ff');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, W, H);
+    // Fondo
+    if (imgBackground.complete) {
+        ctx.drawImage(imgBackground, 0, 0, W, H);
+    } else {
+        ctx.fillStyle = '#9be7ff';
+        ctx.fillRect(0, 0, W, H);
+    }
 
     ctx.save();
     ctx.translate(-cameraX, 0);
 
-    // draw tiles
+    // Tiles
     for (let y = 0; y < LEVEL_H; y++) {
         for (let x = 0; x < LEVEL_W; x++) {
             const t = level[y][x];
             if (t === 1) {
-                // ground tile
                 ctx.fillStyle = '#7b4f1d';
                 ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
                 ctx.fillStyle = '#a56d39';
                 ctx.fillRect(x * TILE, y * TILE + TILE - 8, TILE, 8);
-            } else if (t === 2) {
-                // coin
-                const cx = x * TILE + TILE / 2, cy = y * TILE + TILE / 2;
-                ctx.beginPath();
-                ctx.ellipse(cx, cy, 10, 12, 0, 0, Math.PI * 2);
-                ctx.fillStyle = '#ffd24a';
-                ctx.fill();
-                ctx.strokeStyle = '#b88916';
-                ctx.stroke();
+            } else if (t === 2 && imgCoin.complete) {
+                ctx.drawImage(imgCoin, x * TILE + 10, y * TILE + 10, 20, 20);
             }
         }
     }
 
-    // draw enemies
+    // Enemigos
     for (let e of enemies) {
-        ctx.fillStyle = '#c33';
-        ctx.fillRect(e.x, e.y, e.w, e.h);
-        ctx.fillStyle = 'rgba(0,0,0,0.12)';
-        ctx.fillRect(e.x + 4, e.y + e.h - 6, e.w - 8, 4);
+        if (imgEnemy.complete) ctx.drawImage(imgEnemy, e.x, e.y, e.w, e.h);
+        else {
+            ctx.fillStyle = '#c33';
+            ctx.fillRect(e.x, e.y, e.w, e.h);
+        }
     }
 
-    // draw player (simple hero)
-    ctx.fillStyle = '#ff4d4d';
-    ctx.fillRect(player.x, player.y, player.w, player.h);
-    // eyes
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(player.x + 8, player.y + 10, 6, 6);
-    ctx.fillRect(player.x + 22, player.y + 10, 6, 6);
-    ctx.fillStyle = '#000';
-    ctx.fillRect(player.x + 10, player.y + 12, 2, 2);
-    ctx.fillRect(player.x + 24, player.y + 12, 2, 2);
+    // Jugador
+    if (imgPlayer.complete)
+        ctx.drawImage(imgPlayer, player.x, player.y, player.w, player.h);
+    else {
+        ctx.fillStyle = '#ff4d4d';
+        ctx.fillRect(player.x, player.y, player.w, player.h);
+    }
+
+    ctx.restore();
 
     // HUD
-    ctx.restore();
     ctx.fillStyle = 'rgba(0,0,0,0.6)';
     ctx.fillRect(320, 12, 180, 36);
     ctx.fillStyle = '#fff';
     ctx.font = '18px Arial';
     ctx.fillText('Orbes de fuego: ' + score, 335, 36);
+
     if (gameOver) {
         ctx.fillStyle = 'rgba(0,0,0,0.6)';
         ctx.fillRect(W / 2 - 150, H / 2 - 40, 300, 90);
@@ -273,7 +261,6 @@ function draw() {
 }
 
 let last = 0;
-
 function loop(ts) {
     const dt = (ts - last) / 16.666;
     last = ts;
@@ -281,11 +268,4 @@ function loop(ts) {
     draw();
     requestAnimationFrame(loop);
 }
-
 requestAnimationFrame(loop);
-
-// small helpers for replacing level or resetting
-function resetGame() {
-    // simple reload
-    window.location.reload();
-}
