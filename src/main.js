@@ -15,7 +15,7 @@ const imgPlayer = new Image();
 imgPlayer.src = "resources/astronaut.png";
 
 const imgCoin = new Image();
-imgCoin.src = "resources/semilla.png";
+imgCoin.src = "resources/tornado.png";
 
 const imgEnemy = new Image();
 imgEnemy.src = "resources/monstruo_nvl1.png";
