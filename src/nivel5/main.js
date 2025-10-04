@@ -9,13 +9,13 @@ const W = canvas.width, H = canvas.height;
 
 // === Sprites ===
 const imgBackground = new Image();
-imgBackground.src = "../resources/desierto.jpg";
+imgBackground.src = "../resources/granja.jpg";
 
 const imgPlayer = new Image();
 imgPlayer.src = "../resources/astronaut.png";
 
 const imgCoin = new Image();
-imgCoin.src = "../resources/semilla.png";
+imgCoin.src = "../resources/gema.png";
 
 const imgEnemy = new Image();
 imgEnemy.src = "../resources/monstruo_nvl1.png";
