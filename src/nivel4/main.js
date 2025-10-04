@@ -9,16 +9,16 @@ const W = canvas.width, H = canvas.height;
 
 // === Sprites ===
 const imgBackground = new Image();
-imgBackground.src = "resources/desierto.jpg";
+imgBackground.src = "../resources/desierto.jpg";
 
 const imgPlayer = new Image();
-imgPlayer.src = "resources/astronaut.png";
+imgPlayer.src = "../resources/astronaut.png";
 
 const imgCoin = new Image();
-imgCoin.src = "resources/semilla.png";
+imgCoin.src = "../resources/semilla.png";
 
 const imgEnemy = new Image();
-imgEnemy.src = "resources/monstruo_nvl1.png";
+imgEnemy.src = "../resources/monstruo_nvl1.png";
 
 // === Estado del juego ===
 let keys = {};
@@ -26,8 +26,8 @@ let cameraX = 0;
 let orbesRecolectadas = 0;
 let orbesValidas = 0;
 let gameOver = false;
-let temperatura = 42;
-const ORBES_NECESARIAS = 4;
+let temperatura = 30;
+const ORBES_NECESARIAS = 3;
 let juegoIniciado = false;
 let nivelPasado = false; // ← para evitar múltiples ejecuciones
 
@@ -197,7 +197,7 @@ function update(dt) {
 
             // 🟢 Pasar a nivel 2 al llegar a 4 orbes válidas
             if (orbesRecolectadas == ORBES_NECESARIAS) {
-                window.open("nivel2/index.html", "_self");
+                window.open("../nivel5/index.html", "_self");
             }
         }
     }
@@ -289,7 +289,7 @@ function draw() {
     ctx.fillRect(20, 12, 200, 36);
     ctx.fillStyle = "#fff";
     ctx.font = "18px Arial";
-    ctx.fillText(`Aire: ${orbesRecolectadas} / ${ORBES_NECESARIAS}`, 30, 36);
+    ctx.fillText(`Huevos: ${orbesRecolectadas} / ${ORBES_NECESARIAS}`, 30, 36);
 
     ctx.fillStyle = "rgba(0,0,0,0.6)";
     ctx.fillRect(W - 220, 12, 200, 36);
@@ -302,9 +302,9 @@ function draw() {
         ctx.fillStyle = "#fff";
         ctx.textAlign = "center";
         ctx.font = "32px Arial";
-        ctx.fillText("Level 1: The Burning Lands", W / 2, H / 2 - 40);
+        ctx.fillText("Level 4: Awakening Life", W / 2, H / 2 - 40);
         ctx.font = "18px Arial";
-        ctx.fillText("Mission: Collect 4 heat orbs to absorb excess energy and cool the surface to 38°C.", W / 2, H / 2 - 10);
+        ctx.fillText("Mission: Collect 3 eggs and help them hatch into life. Stabilize the ecosystem at 27°C.", W / 2, H / 2 - 10);
         ctx.fillStyle = "#00b894";
         ctx.fillRect(W / 2 - 50, H / 2 + 10, 100, 40);
         ctx.fillStyle = "#fff";

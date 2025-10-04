@@ -1,0 +1,40 @@
+/*
+    DISEÑO STYLE GENERAL
+*/
+
+/* Reseteo general */
+html, body {
+    height: 100%;
+    margin: 0;
+    background: #e6dedf;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial
+
+}
+
+/* Canva */
+#game {
+    display: block;
+    margin: 24px auto;
+    border: 8px solid #2b2b2b;
+    background: linear-gradient(#6ec1ff, #7fffac);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, .15);
+}
+
+/* Mensaje informativo de jugabilidad */
+.info {
+    width: 800px;
+    margin: 12px auto;
+    text-align: center;
+    color: #111;
+    background-color: #dddddd;
+}
+
+/* Flechas */
+.kbd {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: #fff7;
+    border: 1px solid #ddd;
+    margin: 0 4px
+}
