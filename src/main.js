@@ -4,7 +4,6 @@
    - Simple tile map platforms
    - Coins and a walking enemy
    - Camera follows player
-   - No copyrighted Nintendo assets used
    -------------------------------*/
 
 const canvas = document.getElementById('game');
