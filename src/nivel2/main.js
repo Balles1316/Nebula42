@@ -9,7 +9,7 @@ const W = canvas.width, H = canvas.height;
 
 // === Sprites ===
 const imgBackground = new Image();
-imgBackground.src = "../resources/laguna.jpg";
+imgBackground.src = "../resources/temperaturas.jpg";
 
 const imgPlayer = new Image();
 imgPlayer.src = "../resources/astronaut.png";
