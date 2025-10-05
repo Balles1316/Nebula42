@@ -289,7 +289,7 @@ function draw() {
     ctx.fillRect(20, 12, 200, 36);
     ctx.fillStyle = "#fff";
     ctx.font = "18px Arial";
-    ctx.fillText(`Aire: ${orbesRecolectadas} / ${ORBES_NECESARIAS}`, 30, 36);
+    ctx.fillText(`Air: ${orbesRecolectadas} / ${ORBES_NECESARIAS}`, 30, 36);
 
     ctx.fillStyle = "rgba(0,0,0,0.6)";
     ctx.fillRect(W - 220, 12, 200, 36);
