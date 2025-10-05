@@ -99,7 +99,7 @@ Together, we combine technical skills (coding, data processing, and prototyping)
 
 ## 🛰 Demo
 
-🎥 *30-second video demo:* [Add your YouTube or Drive link here]  
+🎥 *30-second video demo:* https://youtu.be/Fzh7con4avc?si=8cvcYo3BAHaHZuGC
 The video shows the game progression — from the destruction of Earth to its full recovery — using real NASA data visuals and game clips.
 
 ---
