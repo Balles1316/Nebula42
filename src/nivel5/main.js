@@ -197,7 +197,7 @@ function update(dt) {
 
             // 🟢 Pasar a nivel 2 al llegar a 4 orbes válidas
             if (orbesRecolectadas == ORBES_NECESARIAS) {
-                alert("END"); // TODO: MEJORAR
+                alert("Congratulations — You Saved the World!");
             }
         }
     }
