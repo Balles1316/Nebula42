@@ -220,7 +220,6 @@ function update(dt) {
     }
 
     // Colisión con enemigos
-   // --- Colisión con enemigos (REEMPLAZA el bloque existente por este) ---
 for (let e of enemies) {
     if (e.dead) continue; // ignora enemigos ya muertos
 

@@ -221,15 +221,32 @@ function update(dt) {
 
     // Colisión con enemigos
     for (let e of enemies) {
-        if (rectsOverlap(player, e)) {
-            if (player.vy > 1) {
-                e.dead = true;
-                player.vy = -6;
-            } else {
-                gameOver = true;
-            }
+    if (e.dead) continue; // ignora enemigos ya muertos
+
+    if (rectsOverlap(player, e)) {
+        // coordenadas relevantes
+        const playerBottom = player.y + player.h;
+        const enemyTop = e.y;
+        const verticalOverlap = playerBottom - enemyTop; // cuánto "entra" el jugador desde arriba
+
+        // condición de 'stomp': el jugador está cayendo y la superposición vertical es pequeña
+        // ajusta 16 si quieres que sea más permisivo/estricto
+        if (player.vy > 1 && verticalOverlap > 2 && verticalOverlap < 20) {
+            e.dead = true;       // marcar para eliminar
+            player.vy = -6;      // rebote al matar
+            // si quieres, añade puntos o efecto aquí
+        } else {
+            gameOver = true;     // colisión lateral / por debajo => game over
         }
     }
+}
+
+// --- Eliminación segura de enemigos marcados como muertos ---
+// Pégalo después del bucle anterior, antes de actualizar la cámara.
+// Esto quita del array los enemigos muertos para que ya no se actualicen ni dibujen.
+for (let i = enemies.length - 1; i >= 0; i--) {
+    if (enemies[i].dead) enemies.splice(i, 1);
+}
 
     cameraX = Math.max(0, Math.min(player.x - 200, LEVEL_W * TILE - W));
 }
@@ -335,3 +352,136 @@ function loop(ts) {
     requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
+/* -----------------------
+  Speech-bubble overlay
+  (Pega esto AL FINAL de tu archivo, sin tocar lo demás)
+------------------------*/
+
+// --- Texto de la nubecita ---
+const infoText = "NASA satellites track floods in near real-time, helping communities prepare and respond to disasters.";
+
+// --- Control de visibilidad ---
+let __bubbleVisible = false;
+let __bubbleFrames = 0;
+const __TARGET_FPS = 60; // si tu juego corre a 60fps; ajusta si es distinto
+const __BUBBLE_DURATION_SECONDS = 5; // tiempo en segundos que quieres que dure
+const __BUBBLE_DURATION_FRAMES = Math.round(__BUBBLE_DURATION_SECONDS * __TARGET_FPS);
+
+// --- Helper: envoltorio de texto ---
+function __wrapTextLines(ctx, text, maxWidth) {
+    const words = text.split(' ');
+    const lines = [];
+    let line = '';
+    for (let n = 0; n < words.length; n++) {
+        const testLine = line ? line + ' ' + words[n] : words[n];
+        const metrics = ctx.measureText(testLine);
+        if (metrics.width > maxWidth && line) {
+            lines.push(line);
+            line = words[n];
+        } else {
+            line = testLine;
+        }
+    }
+    if (line) lines.push(line);
+    return lines;
+}
+
+// --- Dibujar la burbuja tipo cómic (se dibuja en coordenadas de pantalla) ---
+function __drawSpeechBubble(text, x, y, maxWidth = 360) {
+    ctx.save();
+    ctx.font = "16px Arial";
+    ctx.textBaseline = "top";
+
+    const paddingX = 12;
+    const paddingY = 10;
+    const lineHeight = 20;
+
+    const lines = __wrapTextLines(ctx, text, maxWidth - paddingX * 2);
+    const boxWidth = Math.max(...lines.map(l => ctx.measureText(l).width)) + paddingX * 2;
+    const boxHeight = lines.length * lineHeight + paddingY * 2;
+    const radius = 12;
+
+    // Posición y caja redondeada
+    const bx = x;
+    const by = y;
+    const bw = boxWidth;
+    const bh = boxHeight;
+
+    // Sombra
+    ctx.beginPath();
+    ctx.moveTo(bx + radius, by);
+    ctx.arcTo(bx + bw, by, bx + bw, by + bh, radius);
+    ctx.arcTo(bx + bw, by + bh, bx, by + bh, radius);
+    ctx.arcTo(bx, by + bh, bx, by, radius);
+    ctx.arcTo(bx, by, bx + bw, by, radius);
+    ctx.closePath();
+    ctx.fillStyle = "rgba(0,0,0,0.25)";
+    ctx.fill();
+
+    // Caja blanca y borde negro
+    ctx.beginPath();
+    ctx.moveTo(bx + radius, by);
+    ctx.arcTo(bx + bw, by, bx + bw, by + bh, radius);
+    ctx.arcTo(bx + bw, by + bh, bx, by + bh, radius);
+    ctx.arcTo(bx, by + bh, bx, by, radius);
+    ctx.arcTo(bx, by, bx + bw, by, radius);
+    ctx.closePath();
+    ctx.fillStyle = "#fff";
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "#000";
+    ctx.stroke();
+
+    // Colita/tail (apuntando hacia abajo)
+    const tailW = 18, tailH = 12;
+    ctx.beginPath();
+    ctx.moveTo(bx + 20, by + bh);
+    ctx.lineTo(bx + 20 + tailW / 2, by + bh + tailH);
+    ctx.lineTo(bx + 20 + tailW, by + bh);
+    ctx.closePath();
+    ctx.fillStyle = "#fff";
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "#000";
+    ctx.stroke();
+
+    // Texto
+    ctx.fillStyle = "#000";
+    for (let i = 0; i < lines.length; i++) {
+        ctx.fillText(lines[i], bx + paddingX, by + paddingY + i * lineHeight);
+    }
+
+    ctx.restore();
+}
+
+// --- Observador simple: detecta cuando juego pasa de no iniciado -> iniciado ---
+let __prevJuegoIniciado = !!juegoIniciado;
+setInterval(() => {
+    if (!__prevJuegoIniciado && juegoIniciado) {
+        // se acaba de iniciar el juego: mostrar burbuja
+        __bubbleVisible = true;
+        __bubbleFrames = 0;
+    }
+    __prevJuegoIniciado = !!juegoIniciado;
+}, 100);
+
+// --- Envuelve la función draw original para dibujar la burbuja después ---
+// (esto no modifica tu draw original, solo lo envuelve)
+if (typeof draw === "function") {
+    const __origDraw = draw;
+    draw = function() {
+        __origDraw(); // hace TODO lo que ya hace tu draw
+        // ahora dibuja la nubecita encima si procede
+        if (__bubbleVisible && juegoIniciado && !gameOver) {
+            __bubbleFrames++;
+            if (__bubbleFrames > __BUBBLE_DURATION_FRAMES) {
+                __bubbleVisible = false;
+            } else {
+                // Ajusta posición y ancho aquí si quieres (coordenadas de pantalla)
+                __drawSpeechBubble(infoText, 20, 70, 360);
+            }
+        }
+    };
+} else {
+    console.warn("No se encontró la función draw para envolver la nubecita. Asegúrate de pegar este bloque AL FINAL del archivo.");
+}

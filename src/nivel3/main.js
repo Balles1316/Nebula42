@@ -221,15 +221,32 @@ function update(dt) {
 
     // Colisión con enemigos
     for (let e of enemies) {
-        if (rectsOverlap(player, e)) {
-            if (player.vy > 1) {
-                e.dead = true;
-                player.vy = -6;
-            } else {
-                gameOver = true;
-            }
+    if (e.dead) continue; // ignora enemigos ya muertos
+
+    if (rectsOverlap(player, e)) {
+        // coordenadas relevantes
+        const playerBottom = player.y + player.h;
+        const enemyTop = e.y;
+        const verticalOverlap = playerBottom - enemyTop; // cuánto "entra" el jugador desde arriba
+
+        // condición de 'stomp': el jugador está cayendo y la superposición vertical es pequeña
+        // ajusta 16 si quieres que sea más permisivo/estricto
+        if (player.vy > 1 && verticalOverlap > 2 && verticalOverlap < 20) {
+            e.dead = true;       // marcar para eliminar
+            player.vy = -6;      // rebote al matar
+            // si quieres, añade puntos o efecto aquí
+        } else {
+            gameOver = true;     // colisión lateral / por debajo => game over
         }
     }
+}
+
+// --- Eliminación segura de enemigos marcados como muertos ---
+// Pégalo después del bucle anterior, antes de actualizar la cámara.
+// Esto quita del array los enemigos muertos para que ya no se actualicen ni dibujen.
+for (let i = enemies.length - 1; i >= 0; i--) {
+    if (enemies[i].dead) enemies.splice(i, 1);
+}
 
     cameraX = Math.max(0, Math.min(player.x - 200, LEVEL_W * TILE - W));
 }
